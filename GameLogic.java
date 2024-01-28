@@ -306,6 +306,7 @@ public class GameLogic implements PlayableLogic {
 
 		if (isGameFinished()) {
 			if (winner) {
+				defender.setWins();
 				sortByPawnHistory(defender);
 				for (int i = 0; i < boardState.size(); i++) {
 					if (boardState.get(i) instanceof King)
@@ -319,6 +320,7 @@ public class GameLogic implements PlayableLogic {
 				sortByPosition();
 			}
 			if (!winner) {
+				attacker.setWins();
 				sortByPawnHistory(attacker);
 				for (int i = 0; i < boardState.size(); i++) {
 					if (boardState.get(i) instanceof King)
@@ -570,12 +572,12 @@ public class GameLogic implements PlayableLogic {
 			//The defender wins
 			//the king is in a corner or all the attacker's pawn dead
 			if (isCorner(xKing, yKing) || deadAttacker == 24) {
-				defender.setWins();
 				winner = true;
 				return true;
 			}
+			//The attacker wins
+			//the king dead
 			if (killKing4sides() || killKing3sides()) {
-				attacker.setWins();
 				winner = false;
 				return true;
 			}

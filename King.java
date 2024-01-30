@@ -1,11 +1,6 @@
 import java.util.ArrayList;
 
 public class King extends ConcretePiece{
-	private String type;
-	private ConcretePlayer owner;
-	private String name;
-	private int numSteps;
-	private ArrayList<Position> historyMove;
 
 	public King(Player player){
 		super.owner = player;

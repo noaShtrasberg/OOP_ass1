@@ -3,10 +3,7 @@ import java.util.ArrayList;
 public class GameLogic implements PlayableLogic {
 
 	private final int BOARD_SIZE = 11;
-	private final int BOARD_CENTER = BOARD_SIZE / 2;
 	ConcretePiece[][] board = new ConcretePiece[BOARD_SIZE][BOARD_SIZE];
-	private ArrayList<ConcretePiece> attackPieces = new ArrayList<>();
-	private ArrayList<ConcretePiece> defendPieces = new ArrayList<>();
 	private ArrayList<ConcretePiece> boardState;
 	ArrayList<Position> pos = new ArrayList<Position>();
 	Position[][] positions;
@@ -26,6 +23,9 @@ public class GameLogic implements PlayableLogic {
 		reset();
 	}
 
+	/*
+	reset the board, the kills, the positions and all the pieces
+ 	*/
 	@Override
 	public void reset() {
 		deadAttacker = 0;
@@ -235,6 +235,9 @@ public class GameLogic implements PlayableLogic {
 
 	}
 
+	/*
+	restart the array of the positions
+	 */
 	public void initPosition() {
 		for (int i = 0; i < 11; i++) {
 			for (int j = 0; j < 11; j++) {
@@ -243,6 +246,9 @@ public class GameLogic implements PlayableLogic {
 		}
 	}
 
+	/*
+	Convert the 2D array to a regular array so we can sort it
+	*/
 	public void arrToArray(Position[][] arr) {
 		for (int i = 0; i < 11; i++) {
 			for (int j = 0; j < 11; j++) {
@@ -251,10 +257,16 @@ public class GameLogic implements PlayableLogic {
 		}
 	}
 
+	/*
+	get src position and dst position.
+	return true if the move is legal, else - false.
+	 */
 	@Override
 	public boolean move(Position a, Position b) {
-		//מנסה לבצע מהלך של כלי ממיקום אחד למיקום אחר על לוח
-		//המשחק. מחזיר true אם המהלך חוקי והצליח, אחרת מחזיר false
+		/*
+		at start - if it's diagonal / move to the corner for a pawn / not the
+		player turn - return false.
+		 */
 		if (a.isDiagonal(b)) {
 			return false;
 		}
@@ -265,6 +277,7 @@ public class GameLogic implements PlayableLogic {
 		if (!board[a.get_x()][a.get_y()].getOwner().isPlayerOne() && firstPlayerTurn)
 			return false;
 		else {
+			//if there is a piece in the wanted path - return false.
 			if (a.get_x() == b.get_x()) {
 				if (a.get_y() > b.get_y()) {
 					for (int i = b.get_y(); i < a.get_y(); i++) {
@@ -293,6 +306,7 @@ public class GameLogic implements PlayableLogic {
 			}
 		}
 		firstPlayerTurn = !firstPlayerTurn;
+		//make the move and sum up the amount of kills.
 		doMove(a, b);
 		kills = isKill(b);
 		if (isSecondPlayerTurn()) { //defender kills the attacker
@@ -301,9 +315,11 @@ public class GameLogic implements PlayableLogic {
 			deadDefender = deadDefender + kills;
 		}
 
+		//kills for specific pawn.
 		if (getPieceAtPosition(b) instanceof Pawn)
 			((Pawn) board[b.get_x()][b.get_y()]).setNumKills(kills);
 
+		//make all the sorts and the updates if the is finish.
 		if (isGameFinished()) {
 			if (winner) {
 				defender.setWins();
@@ -337,7 +353,11 @@ public class GameLogic implements PlayableLogic {
 		}
 		return true;
 	}
-	    public void doMove (Position a, Position b){
+
+	/*
+	make the step and update in the relevant places (positions and history).
+	 */
+	public void doMove (Position a, Position b){
 			if (board[a.get_x()][a.get_y()].getHistory().isEmpty()) {
 				board[a.get_x()][a.get_y()].setHistory(a);
 			}
@@ -358,14 +378,23 @@ public class GameLogic implements PlayableLogic {
 				((Pawn) board[b.get_x()][b.get_y()]).setHistory(b);
 
 		}
-		public boolean pieceIsContains (ArrayList < ConcretePiece > arr, ConcretePiece p){
+	/*
+	check if a specifec piece is already at the array.
+	 */
+	public boolean pieceIsContains (ArrayList < ConcretePiece > arr, ConcretePiece p){
 			for (int i = 0; i < arr.size(); i++) {
 				if (arr.get(i).getName().equals(p.getName()))
 					return true;
 			}
 			return false;
 		}
-		public int isKill (Position b){
+	/*
+	get the dst position.
+	return the amount of kills - sum the directions for several kills at the same step.
+	uses the functions: regularKill - redPawn,bluePawn,redPawn.
+	                    edgeKill - bluePawn, redPawn, end of the board.
+	 */
+	public int isKill (Position b){
 			int x = b.get_x();
 			int y = b.get_y();
 			int numKills = 0;
@@ -397,7 +426,7 @@ public class GameLogic implements PlayableLogic {
 			}
 			return numKills;
 		}
-		public int regularKill ( int xKiller, int yKiller, int xEaten, int yEaten, int xSide2, int ySide2){
+	public int regularKill (int xKiller, int yKiller, int xEaten, int yEaten, int xSide2, int ySide2){
 			if (board[xEaten][yEaten] != null && board[xSide2][ySide2] != null) {
 				boolean killer = board[xKiller][yKiller].getOwner().isPlayerOne();
 				boolean eaten = board[xEaten][yEaten].getOwner().isPlayerOne();
@@ -417,7 +446,7 @@ public class GameLogic implements PlayableLogic {
 			}
 			return 0;
 		}
-		public int edgeKill ( int xKiller, int yKiller, int xEaten, int yEaten){
+	public int edgeKill (int xKiller, int yKiller, int xEaten, int yEaten){
 			if (board[xEaten][yEaten] != null) {
 				boolean killer = board[xKiller][yKiller].getOwner().isPlayerOne();
 				boolean eaten = board[xEaten][yEaten].getOwner().isPlayerOne();
@@ -428,27 +457,38 @@ public class GameLogic implements PlayableLogic {
 			}
 			return 0;
 		}
-		public boolean isCorner ( int x, int y){
+	/*
+	get x and y on the board
+	return true if it is a corner.
+	 */
+	public boolean isCorner (int x, int y){
 			if ((x == 0 && y == 0) || (x == 0 && y == BOARD_SIZE - 1) ||
 					(x == BOARD_SIZE - 1 && y == 0) || (x == BOARD_SIZE - 1 && y == BOARD_SIZE - 1))
 				return true;
 			return false;
 		}
-		@Override
-		public Piece getPieceAtPosition (Position position){
+	/*
+	get a position.
+	return the piece on it.
+	 */
+	@Override
+	public Piece getPieceAtPosition (Position position){
 			ConcretePiece atPosition = board[position.get_x()][position.get_y()];
 			return atPosition;
 		}
-		@Override
-		public Player getFirstPlayer () {
+	@Override
+	public Player getFirstPlayer () {
 			return this.defender;
 		}
-		@Override
-		public Player getSecondPlayer () {
+	@Override
+	public Player getSecondPlayer () {
 			return this.attacker;
 		}
-		public void countSteps () {
-			for (int i = 0; i < boardState.size(); i++) {
+	/*
+	count the num of steps that the piece do on one move.
+	 */
+	public void countSteps () {
+			for (int i=0 ; i<boardState.size() ; i++) {
 				ConcretePiece c = boardState.get(i);
 				if (c.getHistory().size() > 1) {
 					for (int j = 0; j < c.getHistory().size() - 1; j++) {
@@ -462,7 +502,11 @@ public class GameLogic implements PlayableLogic {
 				}
 			}
 		}
-		public boolean killKing4sides () {
+	/*
+	the next two functions check if there was a king's kill.
+	the two options - 4 pawns surround the king, or three with the edge.
+	 */
+	public boolean killKing4sides () {
 			if (xKing > 0 && xKing < BOARD_SIZE - 1 && yKing > 0 && yKing < BOARD_SIZE - 1) {
 				boolean left = board[xKing - 1][yKing] != null && !board[xKing - 1][yKing].getOwner().isPlayerOne();
 				boolean right = board[xKing + 1][yKing] != null && !board[xKing + 1][yKing].getOwner().isPlayerOne();
@@ -474,7 +518,7 @@ public class GameLogic implements PlayableLogic {
 			}
 			return false;
 		}
-		public boolean killKing3sides () {
+	public boolean killKing3sides () {
 			if (xKing == 0) {
 				boolean right = board[xKing + 1][yKing] != null && !board[xKing + 1][yKing].getOwner().isPlayerOne();
 				boolean up = board[xKing][yKing - 1] != null && !board[xKing][yKing - 1].getOwner().isPlayerOne();
@@ -509,11 +553,14 @@ public class GameLogic implements PlayableLogic {
 			}
 			return false;
 		}
-		@Override
-		public boolean isSecondPlayerTurn () {
-			return !firstPlayerTurn;
-		}
-		public void sortByNumKills (ConcretePlayer winner){ //sort and print
+	@Override
+	public boolean isSecondPlayerTurn () {
+		return !firstPlayerTurn;
+	}
+	/*
+    sort the pawns by the num of kills the pawn did and print.
+     */
+	public void sortByNumKills (ConcretePlayer winner){ //sort and print
 			boardState.sort(new ComparePiecesWithKills(winner));
 			Pawn p;
 			for (int i = boardState.size() - 1; i >= 0; i--) {
@@ -525,7 +572,10 @@ public class GameLogic implements PlayableLogic {
 			}
 			System.out.println("***************************************************************************");
 		}
-		public void sortByPawnHistory (ConcretePlayer winner){
+	/*
+	sort the pieces by the num of the positions the pawn passed and print.
+	 */
+	public void sortByPawnHistory (ConcretePlayer winner){
 			boardState.sort(new ComarePieceWithHistorMove(winner));
 			for (int i = 0; i < boardState.size(); i++) {
 				if (boardState.get(i) != null) {
@@ -543,7 +593,10 @@ public class GameLogic implements PlayableLogic {
 			}
 			System.out.println("***************************************************************************");
 		}
-		public void sortBySteps (ConcretePlayer winner){
+	/*
+    sort the pieces by the num of steps the pawn did and print.
+     */
+	public void sortBySteps (ConcretePlayer winner){
 			boardState.sort(new CompareSteps(winner));
 			for (int i = 0; i < boardState.size(); i++) {
 				ConcretePiece c = boardState.get(i);
@@ -553,7 +606,10 @@ public class GameLogic implements PlayableLogic {
 			}
 			System.out.println("***************************************************************************");
 		}
-		public void sortByPosition () {
+	/*
+    sort the positions by the num of different pieces that step on it and print.
+     */
+	public void sortByPosition () {
 			pos.sort(new ComparePositions());
 			for (int i = 0; i < pos.size(); i++) {
 				Position p = pos.get(i);
@@ -563,28 +619,28 @@ public class GameLogic implements PlayableLogic {
 			}
 			System.out.println("***************************************************************************");
 		}
-		@Override
-		public void undoLastMove () {
+	@Override
+	public void undoLastMove () {
 
-		}
-		@Override
-		public boolean isGameFinished () {
+	}
+	@Override
+	public boolean isGameFinished () {
 			//The defender wins
 			//the king is in a corner or all the attacker's pawn dead
 			if (isCorner(xKing, yKing) || deadAttacker == 24) {
 				winner = true;
 				return true;
 			}
-			//The attacker wins
-			//the king dead
+		    //The attacker wins
+		    //the king is dead
 			if (killKing4sides() || killKing3sides()) {
 				winner = false;
 				return true;
 			}
 			return false;
 		}
-		@Override
-		public int getBoardSize () {
-			return BOARD_SIZE;
-		}
+	@Override
+	public int getBoardSize () {
+		return BOARD_SIZE;
 	}
+}

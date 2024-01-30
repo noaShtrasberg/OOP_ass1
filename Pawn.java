@@ -1,12 +1,8 @@
 import java.util.ArrayList;
 
 public class Pawn extends ConcretePiece{
-	private String type;
-	private ConcretePlayer owner;
+	//private String type;
 	private int numKills;
-	private ArrayList<Position> historyMove;
-	private int numSteps;
-	private String name;
 
 	public Pawn (Player player){
 		super.owner = player;

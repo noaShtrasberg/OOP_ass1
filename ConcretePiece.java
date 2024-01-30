@@ -3,9 +3,9 @@ import java.util.ArrayList;
 public abstract class ConcretePiece implements Piece{
 	protected Player owner;
 	protected String type;
-    private String name;
-    private int numSteps;
-    private ArrayList<Position> historyMove;
+    protected String name;
+    protected int numSteps;
+    protected ArrayList<Position> historyMove;
 	
 	public ConcretePiece() {
 
